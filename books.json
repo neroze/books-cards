@@ -1,0 +1,29 @@
+{
+  "books": [
+    {
+      "title": "Ego Is the Enemy",
+      "file": "Ego Is the Enemy_ Principle Cards.html",
+      "description": "Ego Is the Enemy",
+      "coverColor": "#4E6B52"
+    },
+    {
+      "title": "Office English Phrases",
+      "file": "Office English Phrases.html",
+      "description": "Office English Phrases",
+      "coverColor": "#2B3A55"
+    },
+    {
+      "title": "speaking-english",
+      "file": "speaking-english.html",
+      "description": "speaking-english",
+      "coverColor": "#9FB6C6"
+    },
+    {
+      "title": "48 Laws of Power_ Swipe Cards",
+      "file": "48 Laws of Power_ Swipe Cards.html",
+      "description": "48 Laws of Power_ Swipe Cards",
+      "coverColor": "#9FB6C6"
+    }
+   
+  ]
+}

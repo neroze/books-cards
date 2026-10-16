@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#E9EAE6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1A1D1B" media="(prefers-color-scheme: dark)">
+  <title>Bookshelf</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='4' width='18' height='24' rx='2' fill='%2334483B'/%3E%3Crect x='7' y='4' width='3' height='24' fill='%23000' opacity='.3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Instrument+Sans:wght@400..600&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"><div class="ambient-layer"></div><div class="ambient-layer"></div></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <h1 class="wordmark">Bookshelf</h1>
+      <p class="count" id="count"></p>
+    </div>
+    <button class="icon-btn glass" id="refresh" type="button" aria-label="Reload books">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </header>
+
+  <div class="notice glass" id="notice" role="status" hidden>
+    <p class="notice-text" id="notice-text"></p>
+    <button class="notice-close" id="notice-close" type="button">Dismiss</button>
+  </div>
+
+  <main class="stage">
+    <!-- Loading / empty / error -->
+    <section class="state" id="state" aria-live="polite">
+      <div class="state-cover" aria-hidden="true"></div>
+      <h2 class="state-title" id="state-title">Loading books…</h2>
+      <p class="state-text" id="state-text"></p>
+      <button class="btn btn-quiet" id="state-retry" type="button" hidden>Try again</button>
+    </section>
+
+    <!-- Deck + details -->
+    <section class="shelf" id="shelf" hidden
+             role="region" aria-roledescription="carousel" aria-label="Books">
+      <div class="deck" id="deck"></div>
+
+      <div class="info" id="info" aria-live="polite">
+        <h2 class="info-title" id="info-title"></h2>
+        <p class="info-author" id="info-author"></p>
+        <p class="info-desc" id="info-desc"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="controls" id="controls" hidden>
+    <a class="btn btn-open" id="open" href="#" target="_blank" rel="noopener">
+      <span id="open-label">Open book</span><span class="sr-only"> (opens in a new tab)</span>
+    </a>
+
+    <div class="dock glass">
+      <button class="icon-btn" id="prev" type="button" aria-label="Previous book">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <p class="position" id="position" aria-live="polite" aria-atomic="true"></p>
+      <button class="icon-btn" id="next" type="button" aria-label="Next book">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
