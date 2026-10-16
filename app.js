@@ -15,15 +15,19 @@
   // Optional embedded data, used only by the standalone preview page.
   // On a normal deployment this is undefined and books.json is fetched.
   const PREVIEW = window.BOOKSHELF_PREVIEW || null;
+  const DEFAULT_THEME = { light: "#E9EAE6", dark: "#1A1D1B" };
 
   const $ = (id) => document.getElementById(id);
   const els = {
     state: $("state"), stateTitle: $("state-title"), stateText: $("state-text"), stateRetry: $("state-retry"),
     shelf: $("shelf"), deck: $("deck"), controls: $("controls"),
-    open: $("open"), openLabel: $("open-label"),
     prev: $("prev"), next: $("next"), position: $("position"),
     count: $("count"), refresh: $("refresh"),
     notice: $("notice"), noticeText: $("notice-text"), noticeClose: $("notice-close"),
+  };
+  const themeMeta = {
+    light: $("theme-color-light"),
+    dark: $("theme-color-dark"),
   };
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -68,7 +72,7 @@
       const kept = keepFile ? books.findIndex((b) => b.file === keepFile) : -1;
       index = kept >= 0 ? kept : Math.min(index, books.length - 1);
       render();
-      motion.pos = motion.target = index;
+      motion.pos = motion.target = motion.display = index;
       motion.vel = 0;
       requestFrame();
       if (!PREVIEW) checkFiles();
@@ -261,9 +265,9 @@
      velocity, so nothing ever jumps or restarts.
      ========================================================== */
 
-  const SPRING = { stiffness: 170, damping: 24 };   // softer settle for longer, smoother swipes
+  const SPRING = { stiffness: 190, damping: 28 };   // smoother settle with a bit more control at release
   const motion = {
-    pos: 0, target: 0, vel: 0,
+    pos: 0, display: 0, target: 0, vel: 0,
     tiltX: 0, tiltY: 0, tiltTX: 0, tiltTY: 0, glareX: 30, glareY: 20,
     raf: 0, last: 0,
   };
@@ -310,6 +314,14 @@
       }
     }
 
+    if (reduce) {
+      motion.display = motion.pos;
+    } else {
+      const follow = drag.active ? 1 - Math.exp(-dt * 34) : 1 - Math.exp(-dt * 20);
+      motion.display += (motion.pos - motion.display) * follow;
+      if (Math.abs(motion.display - motion.pos) < 0.0005) motion.display = motion.pos;
+    }
+
     // Tilt eases towards the pointer (frame-rate independent)
     const ease = reduce ? 1 : 1 - Math.exp(-dt * 14);
     motion.tiltX += (motion.tiltTX - motion.tiltX) * ease;
@@ -320,6 +332,7 @@
     const moving =
       drag.active ||
       motion.pos !== motion.target ||
+      Math.abs(motion.display - motion.pos) > 0.0005 ||
       Math.abs(motion.tiltX - motion.tiltTX) > 0.01 ||
       Math.abs(motion.tiltY - motion.tiltTY) > 0.01;
     if (moving) requestFrame();
@@ -327,7 +340,7 @@
 
   function layout() {
     const reduce = reducedMotion.matches;
-    const pos = motion.pos;
+    const pos = motion.display;
     const nearest = Math.round(pos);
 
     for (let i = 0; i < cards.length; i++) {
@@ -347,9 +360,9 @@
       // Smooth, continuous curves — no breakpoints for the eye to catch
       const near = Math.min(a, 1);
       const far = Math.max(0, a - 1);
-      const x = s * (near + far * 0.5) * spreadPct;
-      const z = -Math.min(a, VISIBLE_RANGE) * 72;
-      const ry = reduce ? 0 : -s * smooth(near) * 22;
+      const x = s * (near + far * 0.46) * spreadPct;
+      const z = -Math.min(a, VISIBLE_RANGE) * 64;
+      const ry = reduce ? 0 : -s * smooth(near) * 18;
 
       let t = `translate3d(${x.toFixed(3)}%,0,${z.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg)`;
       if (i === nearest && (motion.tiltX || motion.tiltY)) {
@@ -383,7 +396,7 @@
 
     // While dragging, the details and pager follow whichever book is closest
     if (drag.active) {
-      const clamped = clampIndex(nearest);
+        const clamped = clampIndex(Math.round(motion.pos));
       if (clamped !== index) { index = clamped; update(); }
     }
   }
@@ -417,11 +430,6 @@
     els.position.textContent = `${index + 1} of ${books.length}`;
     els.prev.disabled = index === 0;
     els.next.disabled = index === books.length - 1;
-
-    const missing = book.status === "missing";
-    els.open.href = missing ? "#" : bookUrl(book);
-    els.open.setAttribute("aria-disabled", String(missing));
-    els.openLabel.textContent = missing ? "File not found" : "Open book";
   }
 
   /* Two glow layers cross-fade (opacity only), instead of repainting one gradient per frame */
@@ -431,6 +439,7 @@
   function setAmbient(book) {
     document.body.style.setProperty("--ambient", book.color);
     document.body.style.setProperty("--ambient-ink", book.ink);
+    setThemeColor(book.color);
     if (book.color === ambientColor || ambientLayers.length < 2) return;
     ambientColor = book.color;
     const next = ambientLayers[1 - ambientFront];
@@ -438,6 +447,11 @@
     next.classList.add("is-on");
     ambientLayers[ambientFront].classList.remove("is-on");
     ambientFront = 1 - ambientFront;
+  }
+
+  function setThemeColor(color = DEFAULT_THEME.light) {
+    if (themeMeta.light) themeMeta.light.setAttribute("content", color);
+    if (themeMeta.dark) themeMeta.dark.setAttribute("content", color);
   }
 
   function goTo(i, velocity = 0) {
@@ -474,6 +488,7 @@
   /* ---------------- States & notices ---------------- */
 
   function showState(kind, detail) {
+    setThemeColor(kind === "loading" ? DEFAULT_THEME.light : DEFAULT_THEME.dark);
     els.shelf.hidden = true;
     els.controls.hidden = true;
     els.state.hidden = false;
@@ -635,13 +650,13 @@
     vel = Math.max(-25, Math.min(25, vel));
 
     // Project where a flick would coast to, then settle on the nearest book
-    const projected = motion.pos + vel * 0.18;
+    const projected = motion.pos + vel * 0.16;
     let target = Math.round(projected);
     target = Math.max(Math.round(motion.pos) - 3, Math.min(Math.round(motion.pos) + 3, target));
 
     drag.active = false;
     els.deck.classList.remove("is-dragging");
-    goTo(target, vel);
+    goTo(target, vel * 0.72);
 
     drag.suppressClick = true;
     setTimeout(() => { drag.suppressClick = false; }, 0);
@@ -674,17 +689,6 @@
     } else if (PREVIEW) {
       e.preventDefault();
       notifyPreview(books[i]);
-    }
-  });
-
-  els.open.addEventListener("click", (e) => {
-    const book = books[index];
-    if (book && book.status === "missing") {
-      e.preventDefault();
-      notifyMissing(book);
-    } else if (PREVIEW) {
-      e.preventDefault();
-      notifyPreview(book);
     }
   });
 

@@ -16,7 +16,7 @@
   --sans: "Instrument Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
 
   --ease-out: cubic-bezier(0.16, 0.84, 0.24, 1);
-  --cover-w: min(88vw, calc((100dvh - 170px) * 0.6667), 520px);
+  --cover-w: min(70vw, calc(70dvh * 0.6667), 520px);
 
   color-scheme: light;
   box-sizing: border-box;
@@ -203,7 +203,7 @@ body {
   position: relative;
   width: var(--cover-w);
   aspect-ratio: 2 / 3;
-  --spread: 26%;
+  --spread: 24%;
   perspective: 1600px;
   perspective-origin: 50% 40%;
   touch-action: none;           /* every finger movement goes to the deck, no scroll hand-off */
@@ -439,20 +439,6 @@ body {
   color: var(--ink);
 }
 
-.btn-open {
-  width: min(100%, 360px);
-  background: var(--ambient);
-  color: var(--ambient-ink, #fff);
-  box-shadow: 0 10px 28px -12px color-mix(in srgb, var(--ambient) 80%, #000);
-}
-.btn-open:hover { filter: brightness(1.08); }
-.btn-open[aria-disabled="true"] {
-  background: color-mix(in srgb, var(--ink) 9%, transparent);
-  color: var(--muted);
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
 .dock {
   display: flex;
   align-items: center;
@@ -475,16 +461,16 @@ body {
 /* ---------- Responsive ---------- */
 
 @media (max-height: 700px) {
-  :root { --cover-w: min(82vw, calc((100dvh - 150px) * 0.6667), 420px); }
+  :root { --cover-w: min(70vw, calc(70dvh * 0.6667), 420px); }
   .topbar { padding-top: 10px; }
   .controls { gap: 10px; padding-bottom: 14px; }
 }
 
 @media (min-width: 760px) {
-  :root { --cover-w: min(70vw, calc((100dvh - 185px) * 0.6667), 620px); }
+  :root { --cover-w: min(42vw, calc(70dvh * 0.6667), 560px); }
   .topbar { padding: 24px 32px 0; }
   .notice { margin-inline: 32px; }
-  .deck { --spread: 34%; }
+  .deck { --spread: 28%; }
 }
 
 /* ---------- Motion preferences ---------- */
