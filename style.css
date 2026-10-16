@@ -16,7 +16,7 @@
   --sans: "Instrument Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
 
   --ease-out: cubic-bezier(0.16, 0.84, 0.24, 1);
-  --cover-w: min(60vw, 280px, calc((100dvh - 430px) * 0.6667));
+  --cover-w: min(88vw, calc((100dvh - 170px) * 0.6667), 520px);
 
   color-scheme: light;
   box-sizing: border-box;
@@ -192,18 +192,19 @@ body {
 
 .shelf {
   width: 100%;
+  height: 100%;
   display: grid;
   justify-items: center;
-  gap: 34px;
-  padding: 22px 0 8px;
+  align-items: center;
+  padding: 12px 0;
 }
 
 .deck {
   position: relative;
   width: var(--cover-w);
   aspect-ratio: 2 / 3;
-  --spread: 34%;
-  perspective: 1200px;
+  --spread: 26%;
+  perspective: 1600px;
   perspective-origin: 50% 40%;
   touch-action: none;           /* every finger movement goes to the deck, no scroll hand-off */
   overscroll-behavior: contain;
@@ -352,19 +353,6 @@ body {
   background: currentColor;
   opacity: 0.55;
 }
-.cover-author {
-  position: absolute;
-  left: 15%; right: 8%;
-  bottom: 13cqi;
-  margin: 0;
-  padding: 0 6cqi;
-  font-family: var(--sans);
-  font-weight: 500;
-  font-size: 4.2cqi;
-  letter-spacing: 0.08em;
-  text-align: center;
-  opacity: 0.9;
-}
 
 .cover-missing {
   position: absolute;
@@ -382,46 +370,6 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
 .cover.is-missing .cover-body { opacity: 0.4; }
-
-/* ---------- Details under the deck ---------- */
-
-.info {
-  width: min(100% - 40px, 34rem);
-  min-height: 7.5rem;
-  text-align: center;
-  transition: opacity 220ms var(--ease-out), transform 320ms var(--ease-out);
-}
-.info.is-changing { opacity: 0; transform: translateY(4px); transition-duration: 140ms; }
-
-.info-title {
-  margin: 0;
-  font-family: var(--serif);
-  font-optical-sizing: auto;
-  font-weight: 500;
-  font-size: clamp(1.625rem, 6.5vw, 2.25rem);
-  line-height: 1.08;
-  letter-spacing: -0.015em;
-  text-wrap: balance;
-}
-.info-author {
-  margin: 8px 0 0;
-  font-weight: 500;
-  font-size: 0.9375rem;
-}
-.info-desc {
-  margin: 6px auto 0;
-  max-width: 40ch;
-  color: var(--muted);
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 1.0625rem;
-  line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.info-author:empty, .info-desc:empty { display: none; }
 
 /* ---------- Loading / empty / error ---------- */
 
@@ -527,25 +475,22 @@ body {
 /* ---------- Responsive ---------- */
 
 @media (max-height: 700px) {
-  :root { --cover-w: min(56vw, 260px, calc((100dvh - 360px) * 0.6667)); }
-  .shelf { gap: 24px; padding-top: 14px; }
-  .info { min-height: 4.5rem; }
-  .info-desc { display: none; }
+  :root { --cover-w: min(82vw, calc((100dvh - 150px) * 0.6667), 420px); }
+  .topbar { padding-top: 10px; }
+  .controls { gap: 10px; padding-bottom: 14px; }
 }
 
 @media (min-width: 760px) {
-  :root { --cover-w: min(300px, calc((100dvh - 430px) * 0.6667)); }
+  :root { --cover-w: min(70vw, calc((100dvh - 185px) * 0.6667), 620px); }
   .topbar { padding: 24px 32px 0; }
   .notice { margin-inline: 32px; }
-  .shelf { gap: 40px; }
-  .deck { --spread: 56%; }
+  .deck { --spread: 34%; }
 }
 
 /* ---------- Motion preferences ---------- */
 
 @media (prefers-reduced-motion: reduce) {
   .ambient-layer { transition-duration: 1ms; }
-  .info { transition: none; }
   .state.is-loading .state-cover,
   #refresh.is-spinning svg { animation: none; }
 }

@@ -20,7 +20,6 @@
   const els = {
     state: $("state"), stateTitle: $("state-title"), stateText: $("state-text"), stateRetry: $("state-retry"),
     shelf: $("shelf"), deck: $("deck"), controls: $("controls"),
-    info: $("info"), infoTitle: $("info-title"), infoAuthor: $("info-author"), infoDesc: $("info-desc"),
     open: $("open"), openLabel: $("open-label"),
     prev: $("prev"), next: $("next"), position: $("position"),
     count: $("count"), refresh: $("refresh"),
@@ -33,9 +32,7 @@
   let books = [];
   let cards = [];
   let index = 0;          // the book the deck is heading to (or resting on)
-  let shownIndex = -1;    // the book whose details are on screen
   let loading = false;
-  let infoTimer = 0;
 
   /* ---------------- Loading ---------------- */
 
@@ -70,7 +67,6 @@
 
       const kept = keepFile ? books.findIndex((b) => b.file === keepFile) : -1;
       index = kept >= 0 ? kept : Math.min(index, books.length - 1);
-      shownIndex = -1;
       render();
       motion.pos = motion.target = index;
       motion.vel = 0;
@@ -149,8 +145,6 @@
       valid.push({
         title,
         file,
-        author: str(entry.author),
-        description: str(entry.description),
         color,
         ink: inkFor(color),
         status: "unknown",
@@ -242,7 +236,6 @@
       const glare = el("span", "cover-glare");
 
       card.append(shadow, el("span", "cover-face"), el("span", "cover-frame"), body);
-      if (book.author) card.append(el("span", "cover-author", book.author));
       card.append(glare, shade);
 
       // cached handles + last-written values so each frame only touches what changed
@@ -268,7 +261,7 @@
      velocity, so nothing ever jumps or restarts.
      ========================================================== */
 
-  const SPRING = { stiffness: 210, damping: 27 };   // near-critically damped, no wobble
+  const SPRING = { stiffness: 170, damping: 24 };   // softer settle for longer, smoother swipes
   const motion = {
     pos: 0, target: 0, vel: 0,
     tiltX: 0, tiltY: 0, tiltTX: 0, tiltTY: 0, glareX: 30, glareY: 20,
@@ -354,9 +347,9 @@
       // Smooth, continuous curves — no breakpoints for the eye to catch
       const near = Math.min(a, 1);
       const far = Math.max(0, a - 1);
-      const x = s * (near + far * 0.55) * spreadPct;
-      const z = -Math.min(a, VISIBLE_RANGE) * 90;
-      const ry = reduce ? 0 : -s * smooth(near) * 28;
+      const x = s * (near + far * 0.5) * spreadPct;
+      const z = -Math.min(a, VISIBLE_RANGE) * 72;
+      const ry = reduce ? 0 : -s * smooth(near) * 22;
 
       let t = `translate3d(${x.toFixed(3)}%,0,${z.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg)`;
       if (i === nearest && (motion.tiltX || motion.tiltY)) {
@@ -408,10 +401,9 @@
       card.setAttribute("aria-hidden", active ? "false" : "true");
       if (active) {
         const book = books[i];
-        const by = book.author ? ` by ${book.author}` : "";
         card.setAttribute("aria-label", book.status === "missing"
-          ? `${book.title}${by}. File not found.`
-          : `Open ${book.title}${by} in a new tab`);
+          ? `${book.title}. File not found.`
+          : `Open ${book.title} in a new tab`);
       } else {
         card.removeAttribute("aria-label");
       }
@@ -430,8 +422,6 @@
     els.open.href = missing ? "#" : bookUrl(book);
     els.open.setAttribute("aria-disabled", String(missing));
     els.openLabel.textContent = missing ? "File not found" : "Open book";
-
-    updateInfo(book);
   }
 
   /* Two glow layers cross-fade (opacity only), instead of repainting one gradient per frame */
@@ -448,29 +438,6 @@
     next.classList.add("is-on");
     ambientLayers[ambientFront].classList.remove("is-on");
     ambientFront = 1 - ambientFront;
-  }
-
-  function updateInfo(book) {
-    const write = () => {
-      els.infoTitle.textContent = book.title;
-      els.infoAuthor.textContent = book.author;
-      els.infoDesc.textContent = book.description;
-    };
-    if (shownIndex === index) { write(); return; }
-    const first = shownIndex === -1;
-    shownIndex = index;
-    clearTimeout(infoTimer);
-
-    if (first || reducedMotion.matches) {
-      write();
-      els.info.classList.remove("is-changing");
-      return;
-    }
-    els.info.classList.add("is-changing");
-    infoTimer = setTimeout(() => {
-      write();
-      els.info.classList.remove("is-changing");
-    }, 140);
   }
 
   function goTo(i, velocity = 0) {
@@ -668,7 +635,7 @@
     vel = Math.max(-25, Math.min(25, vel));
 
     // Project where a flick would coast to, then settle on the nearest book
-    const projected = motion.pos + vel * 0.14;
+    const projected = motion.pos + vel * 0.18;
     let target = Math.round(projected);
     target = Math.max(Math.round(motion.pos) - 3, Math.min(Math.round(motion.pos) + 3, target));
 
