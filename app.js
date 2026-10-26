@@ -265,7 +265,7 @@
      velocity, so nothing ever jumps or restarts.
      ========================================================== */
 
-  const SPRING = { stiffness: 190, damping: 28 };   // smoother settle with a bit more control at release
+  const SPRING = { stiffness: 115, damping: 23 };   // slower, softer settle after touch or button navigation
   const motion = {
     pos: 0, display: 0, target: 0, vel: 0,
     tiltX: 0, tiltY: 0, tiltTX: 0, tiltTY: 0, glareX: 30, glareY: 20,
@@ -314,10 +314,11 @@
       }
     }
 
-    if (reduce) {
+    if (reduce || drag.active) {
+      // A finger must stay attached to the cards it is moving.
       motion.display = motion.pos;
     } else {
-      const follow = drag.active ? 1 - Math.exp(-dt * 34) : 1 - Math.exp(-dt * 20);
+      const follow = 1 - Math.exp(-dt * 24);
       motion.display += (motion.pos - motion.display) * follow;
       if (Math.abs(motion.display - motion.pos) < 0.0005) motion.display = motion.pos;
     }
@@ -647,19 +648,21 @@
       const [t1, p1] = recent[recent.length - 1];
       if (t1 - t0 >= 8) vel = ((p1 - p0) / (t1 - t0)) * 1000;
     }
-    vel = Math.max(-25, Math.min(25, vel));
+    if (drag.type !== "mouse") vel *= 0.72;
+    vel = Math.max(-18, Math.min(18, vel));
 
-    // Project where a flick would coast to, then settle on the nearest book
-    const projected = motion.pos + vel * 0.16;
+    // Project where a flick would coast to, then settle on the nearest book.
+    // Touch momentum is deliberately shorter than mouse momentum.
+    const projected = motion.pos + vel * (drag.type === "mouse" ? 0.16 : 0.105);
     let target = Math.round(projected);
     target = Math.max(Math.round(motion.pos) - 3, Math.min(Math.round(motion.pos) + 3, target));
 
     drag.active = false;
     els.deck.classList.remove("is-dragging");
-    goTo(target, vel * 0.72);
+    goTo(target, vel * (drag.type === "mouse" ? 0.72 : 0.42));
 
     drag.suppressClick = true;
-    setTimeout(() => { drag.suppressClick = false; }, 0);
+    setTimeout(() => { drag.suppressClick = false; }, 350);
   }
   els.deck.addEventListener("pointerup", endDrag);
   els.deck.addEventListener("pointercancel", endDrag);
