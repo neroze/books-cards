@@ -34,7 +34,6 @@
       <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
   </nav>
   <p id="hint" class="text-center text-xs pb-1" style="color:var(--muted)"></p>
-  <p id="credits" class="text-center pb-1" style="color:var(--muted);font-size:10px"></p>
 </main>
 
 <script>
@@ -43,7 +42,7 @@ const IM = ["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkI
 const CFG = {"title": "The Prince", "noun": "Lesson", "hue": 350, "key": "lessons:prince", "credits": "Photos supplied by the author of this app"};
 const N = CARDS.length, stack = document.getElementById('stack'), count = document.getElementById('count');
 const favView = document.getElementById('favview'), hint = document.getElementById('hint');
-const HINT = 'Double-tap a card to flip. Tap the heart on a card to save it. Swipe or use the arrows to browse.';
+const HINT = '';
 const K = CFG.key, FK = K + ':fav', VK = K + ':view';
 let i = 0, busy = false, favs = new Set(), showFav = false;
 
@@ -64,7 +63,6 @@ function step(d) {
 if (showFav && !favs.has(i)) i = step(1);
 
 document.getElementById('title').textContent = CFG.title;
-document.getElementById('credits').textContent = CFG.credits || '';
 hint.textContent = HINT;
 let hintTimer;
 function say(msg) { hint.textContent = msg; clearTimeout(hintTimer); hintTimer = setTimeout(() => { hint.textContent = HINT; }, 2600); }
@@ -87,7 +85,6 @@ function front(n) {
     <div class="relative p-6 pt-8" style="text-shadow:0 2px 12px rgba(0,0,0,.7)">
       <h2 class="serif text-2xl font-extrabold leading-tight mb-2">${esc(c.title)}</h2>
       <p class="text-base leading-relaxed" style="color:#efe6d6">${esc(c.front)}</p>
-      <p class="text-xs mt-3" style="color:#c9bca9">Double-tap to flip for the full idea</p>
     </div></div>`;
 }
 
