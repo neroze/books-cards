@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chanakya Neeti</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#14100f; --ink:#f6efe4; --muted:#a79b8c; box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+  html { scroll-padding-top:env(safe-area-inset-top,0px); }
+  html,body { height:100%; }
+  body { background:var(--bg); color:var(--ink); font-family:Inter,system-ui,sans-serif; overflow:hidden; }
+  .serif { font-family:Fraunces,Georgia,serif; }
+  .card { touch-action:none; user-select:none; -webkit-user-select:none; cursor:grab; }
+  .card:active { cursor:grabbing; }
+  button:focus-visible { outline:2px solid #e8c36a; outline-offset:3px; }
+  #nl-badge-frame { display:none !important; }
+</style>
+</head>
+<body>
+<main class="h-full max-w-md mx-auto flex flex-col px-4 py-3">
+  <header class="flex items-baseline justify-between mb-3 gap-3">
+    <h1 id="title" class="serif text-xl font-extrabold leading-tight"></h1>
+    <span id="count" class="text-sm whitespace-nowrap" style="color:var(--muted)"></span>
+  </header>
+  <div id="stack" class="relative flex-1 min-h-0"></div>
+  <nav class="flex items-center justify-center gap-6 pt-4 pb-2" aria-label="Card controls">
+    <button id="prev" aria-label="Previous card" class="w-16 h-16 rounded-full border-2 border-amber-300 text-amber-300 active:scale-90 transition">
+      <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+    <button id="favview" aria-label="Show favourite cards only" aria-pressed="false" class="relative w-14 h-14 rounded-full border-2 border-pink-400 text-pink-400 text-2xl active:scale-90 transition">♥<span id="favn" class="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full text-[11px] leading-5 font-semibold bg-pink-400 text-black">0</span></button>
+    <button id="next" aria-label="Next card" class="w-16 h-16 rounded-full border-2 border-emerald-400 text-emerald-400 active:scale-90 transition">
+      <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </nav>
+  <p id="hint" class="text-center text-xs pb-1" style="color:var(--muted)"></p>
+</main>
+
+<script>
+const CARDS = [{"title": "Knowledge is wealth no one can steal", "front": "Money can be lost or taken. What you learn stays with you everywhere you go.", "emoji": "📚", "s": "Learning travels with you and cannot be seized by thieves, rulers or bad luck. Chanakya ranks education above property because it keeps paying when everything else is gone.", "k": ["Invest in learning before you invest in possessions.", "Treat a good teacher as a lasting asset.", "Keep studying even when life is comfortable."], "x": "Srinivasa Ramanujan, a poor clerk in Madras with little formal training, mailed his mathematical results to G. H. Hardy in 1913. Hardy invited him to Cambridge, where his work changed number theory.", "t": "Skills and understanding are the one form of wealth that no circumstance can confiscate.", "c": "Knowledge alone does not open every door. Access, connections and opportunity matter too, and talented people without them are often overlooked."}, {"title": "Test people before you trust them", "front": "Judge servants, friends and relatives by how they act under pressure, not by what they promise.", "emoji": "🔍", "s": "Chanakya says character shows in specific moments: when a person is given a task, when you are in trouble, and when something is at stake. Observe first, then extend trust.", "k": ["Give small responsibilities before large ones.", "Watch how people behave when you are in difficulty.", "Let trust grow in step with proven conduct."], "x": "Ronald Reagan often repeated the Russian proverb 'trust but verify' during nuclear arms talks. The 1987 INF Treaty with the Soviet Union included on-site inspections so promises could be checked.", "t": "Trust is earned through observed behaviour, and checking is how it gets earned.", "c": "Constant testing can poison a relationship. People who feel permanently audited may pull away, so verify proportionately and extend some trust early."}, {"title": "Choose your company carefully", "front": "You become like the people around you, so keep the company of the wise and avoid the corrosive.", "emoji": "🤝", "s": "Chanakya warns that associates shape your habits, standards and fortunes. Good company lifts you, while careless company drags you down without you noticing.", "k": ["Spend more time with people you want to resemble.", "Step back from relationships that normalise bad habits.", "Be the kind of company others benefit from."], "x": "In 2007, researchers Nicholas Christakis and James Fowler analysed Framingham Heart Study data and found that obesity spread through social ties, with a person's risk rising when a friend became obese.", "t": "Your surroundings quietly set your standards, so pick them on purpose.", "c": "Cutting people off for being unhelpful can be unkind and short-sighted. Support for struggling friends is also a virtue, and influence runs both ways."}, {"title": "Keep your plans secret until they succeed", "front": "Reveal an aim only once it is accomplished. Announced plans invite interference.", "emoji": "🤫", "s": "A plan spoken aloud can be copied, blocked or sabotaged. Chanakya advises guarding your intentions and letting results speak first.", "k": ["Share plans only with those who need to know.", "Act first and announce afterwards.", "Guard preparation more tightly than progress."], "x": "Before the D-Day landings in June 1944, the Allies ran Operation Fortitude, a deception campaign that led German commanders to expect an invasion at Calais rather than Normandy.", "t": "Surprise protects a plan, and silence creates surprise.", "c": "Secrecy has costs. Teams and partners need information to help, and hiding too much can breed mistrust or leave you without useful feedback."}, {"title": "Don't reveal your weaknesses", "front": "Guard your vulnerabilities, because those who know them can use them against you.", "emoji": "🛡️", "s": "Chanakya advises against exposing your losses, fears and failings to those who might exploit them. Share them only where trust and a purpose exist.", "k": ["Keep financial and emotional soft spots private.", "Do not advertise losses to competitors.", "Confide only in proven, trustworthy people."], "x": "Franklin D. Roosevelt, paralysed by polio, kept the extent of his disability out of public view. Press photographers largely avoided showing his wheelchair while he led the United States through the 1930s and 40s.", "t": "What rivals do not know about your limits cannot easily be turned against you.", "c": "Hiding everything makes you hard to help and hard to know. Honest vulnerability with the right people builds the closest bonds and better decisions."}, {"title": "Learn focus from the crane", "front": "Like a crane stalking a fish, set one goal and give it everything at the right moment.", "emoji": "🦢", "s": "Chanakya points to the crane, which stays still and focused until the moment to strike. Mastering one aim beats scattering effort across many.", "k": ["Choose a single target and commit.", "Cultivate patience and stillness before acting.", "Strike decisively once the moment arrives."], "x": "Roger Bannister, a medical student, trained in short daily sessions around his studies to break the four-minute mile. On 6 May 1954 at Oxford he ran 3:59.4, the first recorded sub-four-minute mile.", "t": "Concentrated effort on one goal outperforms scattered effort on many.", "c": "Narrow focus can blind you to better options or to other parts of life. Even focused people need to check occasionally that the goal is still the right one."}, {"title": "A friend in need is a true friend", "front": "Prosperity brings many companions. Adversity shows which ones are real.", "emoji": "🫂", "s": "Chanakya says true friends are identified in hardship, not good times. Remember who stayed, and be that person for others.", "k": ["Notice who helps when you struggle.", "Show up for others in their difficult moments.", "Do not judge friendship by comfort and convenience."], "x": "In 1997 Apple was close to collapse. At Macworld Boston, Steve Jobs announced Microsoft would invest 150 million dollars in Apple and keep producing Office for Mac, a lifeline from a long-time rival.", "t": "Support given during hardship builds the strongest bonds.", "c": "Some people cannot help in a crisis for good reasons. Judging friendships by a single test can be unfair, and help is often offered quietly."}, {"title": "Straight trees are cut first", "front": "The most upright and conspicuous are the first to be targeted. Be mindful of how exposed you are.", "emoji": "🌳", "s": "Chanakya observes that straight trees fall to the axe before crooked ones. Visibility and rigid uprightness can attract envy and attack, so temper both with caution.", "k": ["Avoid needless displays of success or power.", "Stay flexible rather than rigidly exposed.", "Build allies before drawing attention."], "x": "In 44 BCE Julius Caesar was made dictator for life. Within weeks a group of senators who resented his concentrated power assassinated him on the Ides of March.", "t": "Prominence without protection invites resentment.", "c": "Hiding to stay safe can mean never doing anything worth doing. Principled people sometimes must stand out, and being cut down for it is the price."}, {"title": "Do what is needed in its proper time", "front": "Right action at the wrong moment fails. Learn to read the time, place and means before acting.", "emoji": "⏳", "s": "Chanakya stresses that every task has its season. Understanding timing, resources and circumstance matters as much as the action itself.", "k": ["Ask whether now is the right moment.", "Prepare during quiet periods.", "Wait for conditions to favour you."], "x": "In 217 BCE, Roman dictator Quintus Fabius Maximus avoided open battle with Hannibal and wore down his army through delay. The approach became known as Fabian strategy.", "t": "The right move at the wrong time is the wrong move.", "c": "Waiting for the perfect moment can become an excuse for never starting. Fabius himself was mocked, and Rome later lost heavily after abandoning his approach at Cannae."}, {"title": "Do not trust reputation alone", "front": "A respected name is not proof of honesty. Verify claims, especially when the reward seems too good.", "emoji": "⚖️", "s": "Chanakya warns against putting blind faith in the powerful, the famous and the persuasive. Status can hide poor intent, so test claims on their merits.", "k": ["Check facts independently of the speaker's standing.", "Be wary of consistent, effortless promises.", "Spread risk instead of relying on one authority."], "x": "Bernie Madoff, a former Nasdaq chairman, ran a Ponzi scheme for years on the strength of his reputation. After it collapsed in 2008 he pleaded guilty and was sentenced to 150 years in prison.", "t": "Respect a reputation, but verify the substance behind it.", "c": "Without some trust, daily life and business stall. Treating every authority as suspect is exhausting, so scale your scrutiny to what is at stake."}, {"title": "Anger and greed destroy judgment", "front": "Strong passions cloud the mind. Decisions made in their grip are usually regretted.", "emoji": "🔥", "s": "Chanakya identifies anger and greed as enemies within that distort thinking. A ruler or person ruled by them makes choices that ruin themselves.", "k": ["Pause before acting when angry.", "Notice when desire is steering a decision.", "Sleep on large choices."], "x": "In 328 BCE, during a drunken banquet, Alexander the Great killed his officer Cleitus in a rage over an argument. Ancient sources say he was overcome with remorse afterwards.", "t": "Do not decide while a strong emotion is in command.", "c": "Emotion is not always the enemy. Anger can signal real injustice and motivate change, and suppressing it entirely can be harmful too."}, {"title": "Earn wealth, but guard it with prudence", "front": "Money matters, but save for hard times and spend with care.", "emoji": "💰", "s": "Chanakya treats wealth as a necessary support for a good life. He urges earning honestly and keeping reserves for emergencies rather than spending it all.", "k": ["Save part of every income.", "Avoid spending to match your peak earnings.", "Earn by fair means so wealth lasts."], "x": "Rapper MC Hammer sold millions of albums around 1990, yet filed for bankruptcy in 1996 after heavy spending and a large entourage. He later rebuilt his finances.", "t": "Wealth lasts when earning is matched by restraint and reserves.", "c": "Excess caution can mean never enjoying or investing money. Wealth is a means, and Chanakya himself ranks character and knowledge above it."}, {"title": "Don't take on a task without weighing the cost", "front": "Before you begin, ask what it needs, what it will cost and whether you can see it through.", "emoji": "🧮", "s": "Chanakya advises asking about timing, allies, resources, expected gain and your own strength before starting any serious undertaking. Preparation beats enthusiasm.", "k": ["Estimate costs and your capacity honestly.", "Identify what could go wrong.", "Decide your exit before you start."], "x": "In 1812 Napoleon invaded Russia with an army of roughly 600,000. Stretched supply lines, the retreat from Moscow and winter destroyed most of it, and few survivors returned.", "t": "Count the cost and your own strength before committing.", "c": "Over-analysis can paralyse. Many worthwhile ventures cannot be fully costed in advance, and some uncertainty must be accepted."}, {"title": "Character outweighs birth", "front": "Worth comes from conduct and ability, not from family or the circumstances of your birth.", "emoji": "🌟", "s": "Chanakya holds that a person is judged by deeds, learning and virtue rather than lineage. Noble birth without character earns nothing.", "k": ["Judge people by what they do.", "Invest in your own conduct and skill.", "Do not rely on family name alone."], "x": "Abraham Lincoln was born in 1809 in a one-room log cabin in Kentucky and had little formal schooling. He taught himself law and became the 16th President of the United States in 1861.", "t": "What you do and who you are matter more than where you started.", "c": "Birth still shapes opportunity, and many gifted people never get the chance Lincoln did. Merit is easier to claim than to rely on in an unequal world."}, {"title": "Cultivate self-control over the senses", "front": "Mastering your own desires is the foundation of every other success.", "emoji": "🧘", "s": "Chanakya says a ruler who cannot govern himself cannot govern others. Restraining appetites and impulses gives you the freedom to act wisely.", "k": ["Notice impulses before acting on them.", "Build small daily habits of restraint.", "Choose long-term gain over momentary pleasure."], "x": "George Washington gave up his military command in 1783 and, after two terms as president, declined a third in 1796. His restraint set the norm of peaceful transfer of power in the United States.", "t": "Rule yourself first, and then you can lead others well.", "c": "Over-control can turn into joyless rigidity. Healthy self-discipline includes rest and enjoyment, and not every pleasure is a threat."}, {"title": "Learn from everyone, even enemies", "front": "Wisdom can come from anyone. Take the good from every source and let pride not block you.", "emoji": "🔄", "s": "Chanakya advises learning useful things wherever they are found, including from rivals and people of low standing. A wise person adopts good ideas regardless of the source.", "k": ["Ask what a rival does better than you.", "Stay humble enough to be taught.", "Adopt ideas on merit, not on origin."], "x": "Toyota engineer Taiichi Ohno reportedly drew inspiration for just-in-time production partly from American supermarkets, where shelves were restocked only as customers took goods. It became central to the Toyota Production System.", "t": "Good ideas have no nationality, rank or loyalty.", "c": "Copying without understanding context often fails. Ideas must be adapted to your situation, and learning from enemies can also make you trust a bad source."}, {"title": "Contentment is the highest wealth", "front": "Those satisfied with what they have are richer than those who always want more.", "emoji": "🌅", "s": "Chanakya closes with the idea that peace comes from being satisfied, not from endless acquisition. Craving makes you poor however much you own.", "k": ["Appreciate what you already have.", "Define 'enough' before chasing more.", "Spend on what truly matters to you."], "x": "Warren Buffett, one of the world's richest people, still lives in the Omaha house he bought in 1958 for 31,500 dollars, and has pledged most of his fortune to philanthropy.", "t": "Knowing what is enough is a form of wealth in itself.", "c": "Contentment can slide into complacency or accepting unfair conditions. Some dissatisfaction drives progress and justice, so balance acceptance with ambition."}, {"title": "Live where you can thrive", "front": "Choose a home with a livelihood, respect, kind neighbours and a chance to learn. Leave places that offer none.", "emoji": "🏡", "s": "Chanakya advises against settling where there is no income, no regard for you, no friends and no learning. Place shapes opportunity, so pick it deliberately.", "k": ["Check that a place offers work and growth.", "Look for people who respect and support you.", "Be willing to move when a place stops serving you."], "x": "Albert Einstein left Germany in 1933 as the Nazis rose to power and took a position at the new Institute for Advanced Study in Princeton, where he worked for the rest of his life.", "t": "Where you live decides much of what you can become, so choose it wisely.", "c": "Moving is costly and not always possible. Roots, family and community are also forms of wealth, and some people improve their place rather than leave it."}, {"title": "A fool is safest when silent", "front": "Silence hides a lack of knowledge, while careless speech exposes it and can cost you dearly.", "emoji": "🤐", "s": "Chanakya notes that a person's weaknesses are best kept covered by restraint in speech. Talking beyond what you know invites ridicule and trouble.", "k": ["Speak only on what you understand.", "Pause before joking about serious matters.", "Listen more than you talk."], "x": "In 1991 Gerald Ratner, head of the British jewellery chain Ratners, joked in a speech that some of his products were rubbish. The remark sparked a public backlash and the company's value collapsed.", "t": "Words once spoken cannot be recalled, so think before you speak.", "c": "Staying silent can let falsehoods and injustice stand. Silence is not always wisdom, and learning often requires asking questions that reveal ignorance."}, {"title": "Finish what you start", "front": "Do not abandon a task halfway. Leftover debts, enemies or fires have a way of growing back.", "emoji": "🏁", "s": "Chanakya warns that unfinished business, such as a small debt, a lingering enemy or an unquenched fire, can revive and harm you. Complete tasks fully.", "k": ["Close loops before opening new ones.", "Do not leave small problems to fester.", "Commit to follow-through, not just starting."], "x": "Thomas Edison and his team tested a huge range of filament materials before finding a lasting one. In 1879 a carbon filament burned for around 13 hours, and later bamboo-based filaments lasted over a thousand hours.", "t": "A task half done is often worse than one never begun.", "c": "Sunk-cost thinking can trap you in doomed projects. Sometimes the wise move is to stop, so finish what is worth finishing and drop what is not."}, {"title": "Quality beats quantity", "front": "A single capable person or idea can outweigh a crowd of mediocre ones.", "emoji": "💎", "s": "Chanakya compares one moon that lights the night with a multitude of stars that cannot. He values one worthy companion, helper or product over many poor ones.", "k": ["Prefer a few strong allies to many weak ones.", "Invest in excellence on fewer things.", "Judge teams by capability, not headcount."], "x": "When Facebook bought WhatsApp in 2014 for about 19 billion dollars, the messaging service had only 55 employees while serving hundreds of millions of users.", "t": "One excellent thing is worth more than many ordinary ones.", "c": "Some tasks need scale and numbers, and small teams can become overloaded. Quality matters most when you can actually deliver it at the size required."}, {"title": "Beware sweet words with hidden intent", "front": "Smooth, flattering talk can mask a harmful aim. Judge people by action, not charm.", "emoji": "🍯", "s": "Chanakya cautions against those whose words are honey but whose intentions are poison. Compare what someone says with what they actually do.", "k": ["Watch for gaps between words and conduct.", "Be careful when flattery comes with a request.", "Let actions confirm promises before you rely on them."], "x": "After the 1938 Munich Agreement, British Prime Minister Neville Chamberlain returned declaring peace. In March 1939 Germany occupied the rest of Czechoslovakia, breaking the assurances it had given.", "t": "Trust deeds over declarations.", "c": "Suspecting everyone's kindness is corrosive. Genuine warmth exists, and treating every pleasant person as a threat can cost you real friendships."}, {"title": "Raise children in stages", "front": "Treat children with indulgence when very young, firmness as they grow, and friendship once they are nearly adults.", "emoji": "👨‍👧", "s": "Chanakya proposes that parenting should change with the child's age: warmth first, then discipline, then equality. The approach should fit the stage, not stay fixed.", "k": ["Adjust your parenting as the child matures.", "Combine firm limits with affection.", "Move toward friendship as they become adults."], "x": "Psychologist Diana Baumrind described parenting styles in the 1960s. She found children of authoritative parents, who combined warmth with clear expectations, tended to do better than those of purely strict or permissive ones.", "t": "Good parenting adapts as the child grows.", "c": "Modern child research stresses clear, loving boundaries from early on, so the idea of pure indulgence in early years is dated. Cultures and children differ, and no single formula fits all."}, {"title": "Match your strategy to your strength", "front": "Know your own capacity and the terrain. Fight where your strengths count.", "emoji": "♟️", "s": "Chanakya advises weighing your strength against your opponent's and choosing the battlefield and method accordingly. Strategy begins with honest self-assessment.", "k": ["Assess your resources and limits honestly.", "Choose conditions that favour your strengths.", "Avoid fighting on your opponent's terms."], "x": "In the Winter War of 1939-40, Finland held off a much larger Soviet army using ski troops, forest terrain and harsh winter conditions, inflicting heavy losses before eventually signing a peace treaty.", "t": "Fight the battles your strengths suit, in the places that suit you.", "c": "Playing only to your strengths can leave you outflanked if conditions change. Finland also ultimately ceded territory, so clever strategy does not always overcome sheer disparity."}, {"title": "Do today what you plan for tomorrow", "front": "Do tomorrow's work today and this afternoon's work now. Delay lets chances slip away.", "emoji": "⚡", "s": "Chanakya warns that life is uncertain and opportunity does not wait. Act promptly on what you have decided, because postponement often means never.", "k": ["Start the important task first.", "Cut the gap between deciding and doing.", "Treat today as the time you have."], "x": "Kodak engineer Steve Sasson built the first digital camera in 1975, but the company hesitated to push digital against its profitable film business. Kodak filed for bankruptcy protection in 2012.", "t": "Opportunity rewards those who act before they feel fully ready.", "c": "Rushing leads to mistakes, and some decisions deserve time. Speed helps when the decision is clear, but hurry on the wrong thing only gets you there faster."}, {"title": "Practise what you learn", "front": "Knowledge you never apply is no better than ignorance. Turn learning into action.", "emoji": "🛠️", "s": "Chanakya says learning that stays in books and is not used when needed is of little value. Real understanding comes from doing and testing.", "k": ["Apply each new idea quickly, even in small ways.", "Test your knowledge against real problems.", "Learn by making and correcting mistakes."], "x": "Wilbur and Orville Wright did not rely on existing tables alone. In 1901 they built a wind tunnel, tested many wing shapes, and made the first powered flight on 17 December 1903.", "t": "Learning counts when it changes what you do.", "c": "Action without enough study can be reckless. Theory protects against avoidable mistakes, so the best approach alternates reading with doing."}, {"title": "Fear danger until it arrives, then face it", "front": "Prepare carefully while a threat is distant. Once it is here, stop dreading and act boldly.", "emoji": "🦁", "s": "Chanakya advises caution before danger appears, then courage once it is unavoidable. Anxiety helps you prepare, but it should not freeze you when action is needed.", "k": ["Use early worry to plan and prepare.", "Once the crisis arrives, act decisively.", "Rehearse responses before you need them."], "x": "In January 2009 Captain Chesley Sullenberger landed a US Airways jet on the Hudson River after a bird strike took out both engines. All 155 people aboard survived, helped by years of training.", "t": "Prepare in calm so you can act in crisis.", "c": "Boldness is not always the right response. Some dangers are best avoided or retreated from, and courage without preparation is simply recklessness."}, {"title": "Keep a respectful distance from power", "front": "Rulers, like fire, can warm or burn. Stay close enough to benefit and far enough to be safe.", "emoji": "🏰", "s": "Chanakya compares those in power to fire: useful at the right distance, dangerous when too near or too far. Closeness to authority brings both reward and risk.", "k": ["Do not rely on a powerful patron's favour.", "Keep your own independent standing.", "Be prepared for sudden changes of fortune."], "x": "Thomas Cromwell rose from a humble background to become Henry VIII's chief minister in the 1530s. In 1540 the king had him arrested and executed.", "t": "Power can lift you and drop you with equal speed.", "c": "Avoiding power entirely means avoiding influence. Many people use proximity to leaders to do real good, accepting the risk as part of the work."}, {"title": "Excess ruins even virtues", "front": "Too much beauty, pride or generosity can bring downfall. Moderation protects what is good.", "emoji": "⚖️", "s": "Chanakya warns that going too far in anything, even a good quality, leads to ruin. Balance is a safeguard and not a weakness.", "k": ["Ask when a strength turns into a flaw.", "Set limits on even good habits.", "Seek the middle course."], "x": "In the Nicomachean Ethics, Aristotle argued that each virtue sits between two extremes. Courage, for example, lies between cowardice and recklessness.", "t": "The right amount of a good thing is less than all of it.", "c": "Moderation can become an excuse for mediocrity. Some achievements demand extreme commitment, and not every excess is a vice."}, {"title": "Don't rely on what is out of your hands", "front": "Knowledge locked in books and money held by others may fail you when you most need them.", "emoji": "🔐", "s": "Chanakya notes that what is not at hand in your moment of need is of little use. Keep key knowledge in your head and key resources within reach.", "k": ["Memorise and understand what matters most.", "Keep a reserve you directly control.", "Be careful lending what you may need back."], "x": "On 9 March 2023 customers of Silicon Valley Bank tried to withdraw about 42 billion dollars in one day. Regulators closed the bank the next day, and depositors briefly could not reach their funds.", "t": "Real security is what you can use at the moment you need it.", "c": "Hoarding everything yourself is impractical and isolating. Modern life depends on banks, libraries and other people, so trust should be spread, not withdrawn."}, {"title": "Build self-reliance", "front": "You arrive and depart alone, and ultimately face your hardest moments alone. Develop inner strength.", "emoji": "⛵", "s": "Chanakya reminds us that each person is born alone and dies alone, and carries their own deeds. Dependence on others has limits, so cultivate resilience.", "k": ["Learn to solve problems without help.", "Strengthen your own judgment and skills.", "Be comfortable with solitude."], "x": "Joshua Slocum set sail from Boston in 1895 and completed the first solo circumnavigation of the world in 1898, relying on his own seamanship and resourcefulness.", "t": "Others can support you, but your strength must be your own.", "c": "Humans thrive on connection, and self-reliance can turn into refusing help. Asking for support is often wiser than struggling alone."}, {"title": "A peaceful home is the strongest base", "front": "A calm, loving household supports everything else in life. Protect it.", "emoji": "🏠", "s": "Chanakya treats a harmonious home as the foundation of success and contentment. Conflict at home drains you in every other area of life.", "k": ["Invest time in family relationships.", "Resolve disputes early and fairly.", "Make home a place of rest, not stress."], "x": "The Harvard Study of Adult Development has followed participants for more than 80 years. It found that the quality of close relationships was a leading predictor of health and happiness in later life.", "t": "Good relationships at home protect your wellbeing everywhere else.", "c": "Some homes are not safe or peaceful, and preserving one at any cost can be harmful. Peace should not mean silencing real problems."}, {"title": "Give to the deserving", "front": "Generosity is a virtue, but it works best when directed with thought to where it helps.", "emoji": "🎁", "s": "Chanakya praises giving but stresses discernment about who receives and how. Help should meet real need and not feed waste or dependence.", "k": ["Research before you give.", "Give to those who will use it well.", "Combine compassion with judgment."], "x": "GiveWell, founded in 2007 by Holden Karnofsky and Elie Hassenfeld, evaluates charities using evidence of impact. It has recommended programmes such as malaria net distribution.", "t": "Thoughtful giving does more good than scattered giving.", "c": "Too much scrutiny can delay help or make generosity feel transactional. Sometimes immediate, unconditional aid is what is needed."}, {"title": "A learner must give up distractions", "front": "Serious study demands letting go of luxury, idleness and endless pleasure for a time.", "emoji": "📖", "s": "Chanakya says a true student avoids indulgence and comfort-seeking while learning. Deep skill requires focused time and energy.", "k": ["Cut distractions during study periods.", "Keep simple routines that favour learning.", "Accept short-term sacrifice for long-term skill."], "x": "When Cambridge University closed during the plague in 1665-66, Isaac Newton returned to his family home. There he developed early ideas on calculus, optics and gravitation.", "t": "Deep learning needs undistracted time.", "c": "All work and no rest dulls the mind, and rest and play can spark ideas. Distraction-free time helps, but total austerity does not."}, {"title": "Fix small flaws early", "front": "A small fault, debt or illness left alone tends to grow. Deal with it while it is cheap.", "emoji": "🩹", "s": "Chanakya warns that minor problems ignored become major ones. Early correction costs less than later repair.", "k": ["Address small issues as soon as you notice them.", "Listen to early warnings.", "Do not normalise recurring small faults."], "x": "Before the Challenger launch in January 1986, engineers at Thiokol warned about O-ring performance in cold weather. The launch went ahead, and the shuttle broke apart 73 seconds after liftoff.", "t": "Small problems ignored become large ones.", "c": "Not every small issue deserves attention. Chasing minor flaws can waste time and lead to perfectionism, so judge which ones actually threaten the whole."}];
+const IM = [];
+const CFG = {"title": "Chanakya Neeti", "noun": "Neeti", "hue": 28, "key": "lessons:chanakya-neeti", "credits": ""};
+const N = CARDS.length, stack = document.getElementById('stack'), count = document.getElementById('count');
+const favView = document.getElementById('favview'), hint = document.getElementById('hint');
+const HINT = '';
+const K = CFG.key, FK = K + ':fav', VK = K + ':view';
+let i = 0, busy = false, favs = new Set(), showFav = false;
+
+const save = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+try { const v = parseInt(localStorage.getItem(K), 10); if (v >= 0 && v < N) i = v; } catch (e) {}
+try { favs = new Set(JSON.parse(localStorage.getItem(FK) || '[]').filter(x => Number.isInteger(x) && x >= 0 && x < N)); } catch (e) {}
+try { showFav = localStorage.getItem(VK) === 'fav' && favs.size > 0; } catch (e) {}
+
+const list = () => showFav ? [...favs].sort((a, b) => a - b) : [...Array(N).keys()];
+function step(d) {
+  const L = list();
+  if (!L.length) return i;
+  const p = L.indexOf(i);
+  if (p >= 0) return L[(p + d + L.length) % L.length];
+  if (d > 0) return L.find(x => x > i) ?? L[0];
+  return [...L].reverse().find(x => x < i) ?? L[L.length - 1];
+}
+if (showFav && !favs.has(i)) i = step(1);
+
+document.getElementById('title').textContent = CFG.title;
+hint.textContent = HINT;
+let hintTimer;
+function say(msg) { hint.textContent = msg; clearTimeout(hintTimer); hintTimer = setTimeout(() => { hint.textContent = HINT; }, 2600); }
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hue = n => (CFG.hue + n * 37) % 360;
+
+function front(n) {
+  const c = CARDS[n], h = hue(n);
+  const bg = IM.length
+    ? `<img src="${IM[n % IM.length]}" alt="" draggable="false" class="absolute inset-0 w-full h-full object-cover pointer-events-none select-none">`
+    : `<div class="absolute inset-0" style="background:radial-gradient(circle at 50% 35%, hsl(${h} 55% 32%), hsl(${(h+30)%360} 50% 8%) 75%)"></div>`;
+  return `<div class="face absolute inset-0 rounded-3xl overflow-hidden flex flex-col justify-end shadow-2xl" style="backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid rgba(255,255,255,.12);background:#000">
+    ${bg}
+    <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(to bottom, rgba(0,0,0,.4), rgba(0,0,0,0) 28%, rgba(0,0,0,.2) 48%, rgba(0,0,0,.9) 100%), hsl(${h} 55% 25% / .25)"></div>
+    <span class="absolute top-4 left-4 serif font-extrabold text-sm px-3 py-1 rounded-full" style="background:rgba(0,0,0,.45);color:hsl(${h} 70% 82%);backdrop-filter:blur(6px)">${esc(CFG.noun)} ${n + 1}</span>
+    <span class="absolute top-3 right-16 w-11 h-11 rounded-full flex items-center justify-center text-2xl" style="background:rgba(0,0,0,.4);backdrop-filter:blur(6px)">${esc(c.emoji)}</span>
+    <span class="stamp keep absolute top-20 left-6 serif font-extrabold text-3xl px-3 py-1 rounded-lg border-4 border-amber-300 text-amber-300" style="opacity:0;transform:rotate(-14deg)">PREV</span>
+    <span class="stamp pass absolute top-20 right-6 serif font-extrabold text-3xl px-3 py-1 rounded-lg border-4 border-emerald-400 text-emerald-400" style="opacity:0;transform:rotate(14deg)">NEXT</span>
+    <div class="relative p-6 pt-8" style="text-shadow:0 2px 12px rgba(0,0,0,.7)">
+      <h2 class="serif text-2xl font-extrabold leading-tight mb-2">${esc(c.title)}</h2>
+      <p class="text-base leading-relaxed" style="color:#efe6d6">${esc(c.front)}</p>
+    </div></div>`;
+}
+
+// With no photos the app runs in single view: one detail-only side per card, no front, no flipping.
+const SINGLE = IM.length === 0;
+const faceBg = h => `linear-gradient(170deg, hsl(${h} 30% 15%), hsl(${(h+30)%360} 35% 7%))`;
+
+function detail(n) {
+  const c = CARDS[n], h = hue(n), col = `hsl(${h} 70% 75%)`;
+  const lab = t => `<b class="serif" style="color:${col}">${t}</b>`;
+  return `<div class="flex items-center gap-3 pr-12"><span class="text-3xl">${esc(c.emoji)}</span><h2 class="serif text-lg font-extrabold leading-tight" style="color:var(--ink)">${esc(CFG.noun)} ${n + 1}: ${esc(c.title)}</h2></div>
+    <p>${esc(c.s)}</p>
+    <div>${lab('Key ideas:')}<ul class="list-disc pl-5 space-y-1 mt-1">${c.k.map(k => `<li>${esc(k)}</li>`).join('')}</ul></div>
+    <p>${lab('Classic example:')} ${esc(c.x)}</p>
+    <p>${lab('The takeaway:')} ${esc(c.t)}</p>
+    <p>${lab('A caveat:')} ${esc(c.c)}</p>`;
+}
+
+function back(n) {
+  return `<div class="face absolute inset-0 rounded-3xl overflow-y-auto p-5 flex flex-col gap-3 shadow-2xl text-[14px] leading-snug" style="backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);color:#e4d9c8;border:1px solid rgba(255,255,255,.12);background:${faceBg(hue(n))}">${detail(n)}</div>`;
+}
+
+function single(n) {
+  return `<div class="face absolute inset-0 rounded-3xl overflow-hidden shadow-2xl" style="color:#e4d9c8;border:1px solid rgba(255,255,255,.12);background:${faceBg(hue(n))}">
+    <div class="detail-scroll absolute inset-0 overflow-y-auto p-5 flex flex-col gap-3 text-[15px] leading-snug">${detail(n)}</div>
+    <span class="stamp keep pointer-events-none absolute top-20 left-6 serif font-extrabold text-3xl px-3 py-1 rounded-lg border-4 border-amber-300 text-amber-300" style="opacity:0;transform:rotate(-14deg)">PREV</span>
+    <span class="stamp pass pointer-events-none absolute top-20 right-6 serif font-extrabold text-3xl px-3 py-1 rounded-lg border-4 border-emerald-400 text-emerald-400" style="opacity:0;transform:rotate(14deg)">NEXT</span></div>`;
+}
+
+function cardEl(n) {
+  const el = document.createElement('article');
+  el.className = 'card absolute inset-0';
+  el.style.perspective = '1400px';
+  el.innerHTML = (SINGLE ? single(n) : `<div class="inner absolute inset-0" style="transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,.7,.2,1)">${front(n)}${back(n)}</div>`) + `
+    <button data-fav data-n="${n}" aria-label="Favourite this card" aria-pressed="false" class="absolute top-3 right-3 w-11 h-11 rounded-full flex items-center justify-center text-2xl text-pink-400" style="z-index:20;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);cursor:pointer">♡</button>`;
+  if (SINGLE) el.style.touchAction = 'pan-y';  // vertical drag scrolls the detail text, horizontal drag swipes
+  return el;
+}
+
+function paint() {
+  document.getElementById('favn').textContent = favs.size;
+  favView.setAttribute('aria-pressed', showFav);
+  favView.style.background = showFav ? 'rgba(244,114,182,.25)' : 'transparent';
+  favView.style.opacity = (favs.size || showFav) ? 1 : .5;
+  stack.querySelectorAll('[data-fav]').forEach(b => {
+    const on = favs.has(+b.dataset.n);
+    b.textContent = on ? '♥' : '♡';
+    b.setAttribute('aria-pressed', on);
+  });
+}
+
+function render() {
+  if (showFav && !favs.size) { showFav = false; save(VK, 'all'); }
+  stack.innerHTML = '';
+  const behind = cardEl(step(1));
+  behind.style.transform = 'scale(.94) translateY(14px)';
+  behind.style.opacity = '.7';
+  behind.style.pointerEvents = 'none';
+  const top = cardEl(i);
+  stack.append(behind, top);
+  const L = list();
+  count.textContent = (showFav ? '♥ ' : '') + `${L.indexOf(i) + 1} / ${L.length}`;
+  save(K, String(i));
+  paint();
+  attach(top);
+  busy = false;
+}
+
+function flip(el) {
+  if (SINGLE) return;
+  const inner = el.querySelector('.inner'), f = !inner.style.transform;
+  inner.style.transform = f ? 'rotateY(180deg)' : '';
+  el.style.touchAction = f ? 'pan-y' : 'none';
+}
+
+let lastTap = 0, lastX = 0, lastY = 0;
+function attach(el) {
+  let sx = 0, sy = 0, dx = 0, drag = false;
+  const prevStamp = el.querySelector('.keep'), nextStamp = el.querySelector('.pass');
+  const pose = (x, y) => {
+    el.style.transform = `translate(${x}px, ${y}px) rotate(${x / 18}deg)`;
+    prevStamp.style.opacity = Math.max(0, Math.min(1, x / 100));
+    nextStamp.style.opacity = Math.max(0, Math.min(1, -x / 100));
+  };
+  el.addEventListener('pointerdown', e => {
+    if (busy || e.target.closest('[data-fav]')) return;
+    drag = true; dx = 0; sx = e.clientX; sy = e.clientY;
+    el.setPointerCapture(e.pointerId); el.style.transition = 'none';
+  });
+  el.addEventListener('pointermove', e => { if (!drag) return; dx = e.clientX - sx; pose(dx, (e.clientY - sy) * .3); });
+  const end = e => {
+    if (!drag) return; drag = false;
+    if (Math.abs(dx) > 90) go(dx < 0 ? 1 : -1);
+    else {
+      el.style.transition = 'transform .25s'; pose(0, 0);
+      if (Math.abs(dx) < 6 && e.type === 'pointerup') {
+        const now = Date.now();
+        if (now - lastTap < 350 && Math.hypot(e.clientX - lastX, e.clientY - lastY) < 30) { flip(el); lastTap = 0; }
+        else { lastTap = now; lastX = e.clientX; lastY = e.clientY; }
+      }
+    }
+    dx = 0;
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+}
+
+// d = +1 next card, -1 previous card
+function go(d) {
+  if (busy) return; busy = true;
+  const el = stack.lastElementChild, dir = d > 0 ? -1 : 1;
+  el.style.transition = 'transform .3s ease-in, opacity .3s';
+  el.style.transform = `translate(${dir * 520}px, 40px) rotate(${dir * 24}deg)`;
+  el.style.opacity = '0';
+  setTimeout(() => { i = step(d); render(); }, 280);
+}
+
+function toggleFav() {
+  if (busy) return;
+  favs.has(i) ? favs.delete(i) : favs.add(i);
+  save(FK, JSON.stringify([...favs]));
+  paint();
+}
+
+favView.onclick = () => {
+  if (busy) return;
+  if (!showFav && !favs.size) { say('No favourites yet. Tap the heart on a card to save it.'); return; }
+  showFav = !showFav;
+  save(VK, showFav ? 'fav' : 'all');
+  if (showFav && !favs.has(i)) i = step(1);
+  render();
+};
+stack.addEventListener('click', e => { if (e.target.closest('[data-fav]')) toggleFav(); });
+document.getElementById('prev').onclick = () => go(-1);
+document.getElementById('next').onclick = () => go(1);
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') go(1);
+  else if (e.key === 'ArrowLeft') go(-1);
+  else if (e.key === 'f' || e.key === 'F') toggleFav();
+  else if ([' ', 'Enter', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+    e.preventDefault();
+    if (!SINGLE) { flip(stack.lastElementChild); return; }
+    const sc = stack.lastElementChild.querySelector('.detail-scroll');
+    if (sc && e.key !== 'Enter') sc.scrollBy({ top: (e.key === 'ArrowUp' ? -1 : 1) * 90, behavior: 'smooth' });
+  }
+});
+render();
+</script>
+</body>
+</html>
